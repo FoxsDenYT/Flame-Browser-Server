@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="UTF-8" />
+	<title>Flame Sync - Bookmarks</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css"> </head>
+
+<body>
+	<nav>
+		<div class="nav-wrapper blue-grey darken-4"> <a class="brand-logo center">Bookmarks</a> </div>
+	</nav>
+	<div class="container">
+		<div class="row">
+			<div class="col s12 m6 offset-m3">
+				<div class="">
+					<div id="histItems" class="card-content"> </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+	var itemsArray;
+	// Get the query string parameters
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	// Get the JS array from the "items" parameter
+	const itemsString = urlParams.get('userID');
+	// Define the request URL and method
+	const url = "https://FlameSync2.samdevsapps.repl.co/bookmarks/" + itemsString;
+	const method = "GET";
+
+	function updateBookmarks(id, array) {
+		const userId = id; // Replace with the actual user ID
+		const bookmarks = array; // Replace with the new bookmarks
+		fetch(`/bookmarks/${userId}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(bookmarks)
+		}).then(response => response.text()).then(result => {
+			console.log(result); // Browser bookmarks set to https://example.com,https://google.com
+      bootbox.alert('Sucesss.');
+      window.location.reload();
+		}).catch(error => {
+			console.error(error);
+      bootbox.alert(error)
+		});
+	}
+
+	function BookmarkClicked(idInList, url, title) {
+		bootbox.dialog({
+			message: "What would you like to do with this bookmark?",
+			title: "Bookmark Options",
+			closeButton: false, // set closeButton option to false
+			buttons: {
+				open: {
+					label: "Open",
+					className: "btn-success",
+					callback: function() {
+						// Code to open the bookmark
+						window.open(url)
+					}
+				},
+				edit: {
+					label: "Edit",
+					className: "btn-warning",
+					callback: function() {
+						// Code to edit the bookmark
+						editBookmark(title, idInList, url)
+					}
+				},
+				delete: {
+					label: "Delete",
+					className: "btn-danger",
+					callback: function() {
+						console.log(itemsArray)
+            delete itemsArray[idInList]
+            console.log(itemsArray)
+            updateBookmarks(itemsString, itemsArray)
+					}
+				}
+			}
+		});
+	}
+	// Create the XMLHttpRequest object
+	const request = new XMLHttpRequest();
+	// Set the callback function for when the request completes
+	request.onreadystatechange = function() {
+		if(this.readyState === 4 && this.status === 200) {
+			console.log(this.responseText); // Handle response data here
+			itemsArray = JSON.parse(this.responseText)
+				// Display the items as an unordered list without bullet points
+			const list = document.createElement('ul');
+			list.style.listStyleType = 'none';
+			list.style.maxHeight = "70vh"
+			list.style.overflowY = "auto"
+			list.style.paddingRight = "10px"
+			for(let i = 0; i < itemsArray.length; i++) {
+        const item = itemsArray[i];
+        if(item != null){
+          
+				const listItem = document.createElement('a');
+				listItem.textContent = item.title;
+				listItem.href = "javascript:BookmarkClicked(" + i + ", '" + item.url + "'," + "'"+item.title+"');";
+				listItem.classList = ["card single-line historyitem"]
+				listItem.style.paddingLeft = "10px"
+				list.appendChild(listItem);
+        }
+				
+			}
+			document.getElementById("histItems").appendChild(list);
+		} else {
+			console.log('Request failed. Returned status: ' + this.status);
+		}
+	}
+	request.open(method, url);
+	request.send();
+    function editBookmark(title, id, url) {
+  		var iframeUrl = "https://flamesync2.samdevsapps.repl.co/ui/bookmarkEdit.html?userId="+itemsString+"&title="+title+"&url="+url+"&id="+id; // Replace with the URL of your iframe
+  		var iframeHtml = '<iframe src="' + iframeUrl + '" frameborder="0" scrolling="no" width="100%" height="100%"></iframe>';
+      var viewportHeight = $(window).height();
+      var popupHeight = viewportHeight * 0.7;
+  		bootbox.dialog({
+  			message: iframeHtml,
+  			size: "large",
+        onShown: function() {
+          $(".bootbox-body").css("height", popupHeight);
+          $(".bootbox-body").css("overflow", "hidden");
+        }
+  		});
+	}
+	</script>
+	<style>
+    .bootbox{
+      overflow:hidden;
+    }
+	.single-line {
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		display: inherit;
+	}
+	
+	.md-button {
+		background-color: #2196F3;
+		border: none;
+		color: white;
+		padding: 10px 20px;
+		text-align: center;
+		text-decoration: none;
+		display: "inline-block";
+		font-size: 16px;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	
+	* {
+		-webkit-touch-callout: none;
+		/* iOS Safari */
+		-webkit-user-select: none;
+		/* Safari */
+		-khtml-user-select: none;
+		/* Konqueror HTML */
+		-moz-user-select: none;
+		/* Old versions of Firefox */
+		-ms-user-select: none;
+		/* Internet Explorer/Edge */
+		user-select: none;
+		/* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+	}
+	
+	.btn-warning {
+		background: orange !important;
+		margin-left: 7px !important;
+	}
+	
+	.btn-danger {
+		background: indianred !important;
+		margin-left: 5px !important;
+	}
+	
+	.bootbox-close-button {
+		display: none;
+	}
+	</style>
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="UTF-8" />
+	<title>Flame Sync - History</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+	
+  <link href="bounce.css" rel="stylesheet" type="text/css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+
+<body>
+	<nav>
+		<div class="left logo">Flame Sync - History</div>
+	</nav>
+	<div class="main">
+					<card id="histItems" class="nomove"><h3><center>History</center></h3></card>
+			</div>
+	<script>
+    var itemsArray;
+    const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	// Get the JS array from the "items" parameter
+	const itemsString = urlParams.get('userID');
+    function historyClicked(url, id){
+      //...do stuff here
+          if(confirm("What would you like to do?\nCANCEL: Delete\nOK: Open")){
+            window.open(url)
+          }else{
+            document.getElementById(id).remove()
+            delete itemsArray[id]
+            console.log(itemsArray)
+            
+        // Define the request URL and method
+        const url = "https://FlameSync2.samdevsapps.repl.co/history/" + itemsString;
+        const method = "GET";
+
+        // Create the XMLHttpRequest object
+        const request = new XMLHttpRequest();
+
+        // Set the callback function for when the request completes
+        request.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                console.log(this.responseText);
+
+                var currentHistory = JSON.parse(this.responseText)
+                console.log(typeof(currentHistory))
+                currentHistory.push(unsafeWindow.location.href)
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://FlameSync2.samdevsapps.repl.co/history/' + itemsString); // Replace '12' with the desired user ID
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        console.log(xhr.responseText); // Handle response data here
+                    } else {
+                        console.log('Request failed. Returned status: ' + xhr.status);
+                    }
+                };
+                xhr.send(JSON.stringify(currentHistory)); // Replace with the desired new history data
+
+            }
+        };
+
+        // Open and send the request
+        request.open(method, url);
+        request.send();
+
+    }
+          }
+    
+	// Get the query string parameters
+
+	// Define the request URL and method
+	const url = "https://FlameSync2.samdevsapps.repl.co/history/" + itemsString;
+	const method = "GET";
+	// Create the XMLHttpRequest object
+	const request = new XMLHttpRequest();
+	// Set the callback function for when the request completes
+	request.onreadystatechange = function() {
+		if (this.readyState === 4 && this.status === 200) {
+			console.log(this.responseText); // Handle response data here
+      itemsArray = JSON.parse(this.responseText)
+			// Display the items as an unordered list without bullet points
+			const list = document.createElement('ul');
+			list.style.listStyleType = 'none';
+			list.style.maxHeight = "70vh"
+			list.style.overflowY = "auto"
+			list.style.paddingRight = "10px"
+			for(let i = 0; i < itemsArray.length; i++) {
+        const item = itemsArray[i];
+        if(item.includes("flamesync2.samdevsapps.repl.co/ui/")){
+          
+        }else{
+          
+				const listItem = document.createElement('a');
+				listItem.textContent = item;
+        listItem.id = i
+        listItem.href= "javascript:historyClicked('"+item+"','"+i+"')"
+				listItem.classList = ["card single-line historyitem"]
+				listItem.style.paddingLeft = "10px"
+				list.appendChild(listItem);
+        }
+				
+			}
+			document.getElementById("histItems").appendChild(list);
+      for (let el of document.querySelectorAll(".historyitem")) {
+        url = el.textContent
+        el.addEventListener("click", function() {
+          
+          
+        });
+
+      }
+		} else {
+			console.log('Request failed. Returned status: ' + this.status);
+		}
+	}
+	request.open(method, url);
+	request.send();
+	</script>
+  <style>
+    .single-line{
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: inherit;
+    }
+.md-button {
+  background-color: #2196F3;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: "inline-block";
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+    ul{
+      padding-top:3px;
+      padding-left:3px;
+      overflow-x:none !important;
+
+    }
+    a{
+      margin-bottom:10px;
+      max-width:97%;
+    }
+  </style>
+</body>
+
+</html>
